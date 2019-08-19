@@ -9,8 +9,8 @@ import (
 	"regexp"
 	"strings"
 
-	"aqwari.net/xml/internal/gen"
-	"aqwari.net/xml/xsd"
+	"github.com/treezor-bank/go-xml/internal/gen"
+	"github.com/treezor-bank/go-xml/xsd"
 )
 
 // A Config holds user-defined overrides and filters that are used when
@@ -795,7 +795,7 @@ func (cfg *Config) soapArrayToSlice(s spec) spec {
 		unmarshalFn = unmarshalFn.Body(`
 			var tok xml.Token
 			var itemTag = xml.Name{%q, %q}
-			
+
 			for tok, err = d.Token(); err == nil; tok, err = d.Token() {
 				if tok, ok := tok.(xml.StartElement); ok {
 					var item %s

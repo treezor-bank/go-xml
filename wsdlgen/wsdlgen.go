@@ -7,7 +7,7 @@
 //
 // Code generation for the wsdlgen package can be configured by using
 // the provided Option functions.
-package wsdlgen // import "aqwari.net/xml/wsdlgen"
+package wsdlgen // import "github.com/treezor-bank/go-xml/wsdlgen"
 
 import (
 	"encoding/xml"
@@ -17,10 +17,10 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"aqwari.net/xml/internal/gen"
-	"aqwari.net/xml/wsdl"
-	"aqwari.net/xml/xsd"
-	"aqwari.net/xml/xsdgen"
+	"github.com/treezor-bank/go-xml/internal/gen"
+	"github.com/treezor-bank/go-xml/wsdl"
+	"github.com/treezor-bank/go-xml/xsd"
+	"github.com/treezor-bank/go-xml/xsdgen"
 )
 
 // Types conforming to the Logger interface can receive information about
@@ -212,11 +212,11 @@ func (p *printer) operation(port wsdl.Port, op wsdl.Operation) error {
 					{{ end -}}
 				}`+"`xml:\"{{.InputName.Space}} {{.InputName.Local}}\"`"+`
 			}
-			
+
 			{{- range .InputFields }}
 			input.Args.{{.Name}} = {{.Type}}({{.InputArg}})
 			{{ end }}
-			
+
 			var output struct {
 				XMLName struct{} `+"`"+`xml:"{{.MsgName.Space}} {{.MsgName.Local}}"`+"`"+`
 				Args struct {
@@ -225,9 +225,9 @@ func (p *printer) operation(port wsdl.Port, op wsdl.Operation) error {
 					{{ end -}}
 				}`+"`xml:\"{{.OutputName.Space}} {{.OutputName.Local}}\"`"+`
 			}
-			
+
 			err := c.do(ctx, {{.Method|printf "%q"}}, {{.Address|printf "%q"}}, {{.SOAPAction|printf "%q"}}, &input, &output)
-			
+
 			{{ if .OutputFields -}}
 			return {{ range .OutputFields }}{{.Type}}(output.Args.{{.Name}}), {{ end }} err
 			{{- else if .ReturnType -}}

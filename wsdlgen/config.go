@@ -3,8 +3,8 @@ package wsdlgen
 import (
 	"encoding/xml"
 
-	"aqwari.net/xml/wsdl"
-	"aqwari.net/xml/xsdgen"
+	"github.com/treezor-bank/go-xml/wsdl"
+	"github.com/treezor-bank/go-xml/xsdgen"
 )
 
 // A Config contains parameters for the various code generation processes.
