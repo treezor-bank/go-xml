@@ -1,4 +1,4 @@
-package xsdgen // import "aqwari.net/xml/xsdgen"
+package xsdgen // import "github.com/treezor-bank/go-xml/xsdgen"
 
 import (
 	"bytes"
@@ -11,10 +11,10 @@ import (
 	"strconv"
 	"strings"
 
-	"aqwari.net/xml/internal/dependency"
-	"aqwari.net/xml/internal/gen"
-	"aqwari.net/xml/xmltree"
-	"aqwari.net/xml/xsd"
+	"github.com/treezor-bank/go-xml/internal/dependency"
+	"github.com/treezor-bank/go-xml/internal/gen"
+	"github.com/treezor-bank/go-xml/xmltree"
+	"github.com/treezor-bank/go-xml/xsd"
 )
 
 type orderedStringMap interface {
@@ -82,7 +82,7 @@ type Code struct {
 // DocType retrieves the complexType for the provided target
 // namespace.
 func (c *Code) DocType(targetNS string) (*xsd.ComplexType, bool) {
-	key := xml.Name{targetNS, "_self"}
+	key := xml.Name{Space: targetNS, Local: "_self"}
 	doc, ok := c.types[key].(*xsd.ComplexType)
 	return doc, ok
 }
@@ -161,8 +161,8 @@ func (cfg *Config) gen(primaries, deps []xsd.Schema) (*Code, error) {
 			primary.Types = all
 
 			for name, t := range prev {
-				if t := cfg.preprocessType(primary, t); t != nil {
-					prev[name] = t
+				if tp := cfg.preprocessType(primary, t); t != nil {
+					prev[name] = tp
 				}
 			}
 
@@ -226,16 +226,16 @@ func (cfg *Config) gen(primaries, deps []xsd.Schema) (*Code, error) {
 
 // GenAST generates a Go abstract syntax tree with
 // the type declarations contained in the xml schema document.
-func (code *Code) GenAST() (*ast.File, error) {
+func (c *Code) GenAST() (*ast.File, error) {
 	var file ast.File
 
-	keys := make([]string, 0, len(code.decls))
-	for name := range code.decls {
+	keys := make([]string, 0, len(c.decls))
+	for name := range c.decls {
 		keys = append(keys, name)
 	}
 	sort.Strings(keys)
 	for _, name := range keys {
-		info := code.decls[name]
+		info := c.decls[name]
 		typeDecl := &ast.GenDecl{
 			Doc: gen.CommentGroup(info.doc),
 			Tok: token.TYPE,
@@ -251,7 +251,7 @@ func (code *Code) GenAST() (*ast.File, error) {
 			file.Decls = append(file.Decls, f)
 		}
 	}
-	pkgname := code.cfg.pkgname
+	pkgname := c.cfg.pkgname
 	if pkgname == "" {
 		pkgname = "ws"
 	}
@@ -297,7 +297,7 @@ func (cfg *Config) expandComplexTypes(types []xsd.Type) []xsd.Type {
 		if b, ok := c.Base.(*xsd.ComplexType); ok {
 			if _, ok := index[b.Name]; !ok {
 				// should never happen
-				panic(fmt.Errorf("missing base type for %v.", c.Name))
+				panic(fmt.Errorf("missing base type for %v", c.Name))
 			}
 			graph.Add(i, index[b.Name])
 		}
@@ -381,8 +381,8 @@ func (cfg *Config) flatten(types map[xml.Name]xsd.Type) []xsd.Type {
 				continue
 			}
 		}
-		if t := cfg.flatten1(t, push, 0); t != nil {
-			push(t)
+		if tt := cfg.flatten1(t, push, 0); t != nil {
+			push(tt)
 		}
 	}
 	return dedup(result)
@@ -779,13 +779,12 @@ func (cfg *Config) genComplexType(t *xsd.ComplexType) ([]spec, error) {
 		unmarshal, marshal, err := cfg.genComplexTypeMethods(t, overrides)
 		if err != nil {
 			return result, err
-		} else {
-			if unmarshal != nil {
-				s.methods = append(s.methods, unmarshal)
-			}
-			if marshal != nil {
-				s.methods = append(s.methods, marshal)
-			}
+		}
+		if unmarshal != nil {
+			s.methods = append(s.methods, unmarshal)
+		}
+		if marshal != nil {
+			s.methods = append(s.methods, marshal)
 		}
 	}
 	result = append(result, s)
@@ -886,7 +885,7 @@ func (cfg *Config) genSimpleType(t *xsd.SimpleType) ([]spec, error) {
 			t.Name.Local, xsd.XMLName(t.Base).Local, err)
 	}
 
-	spec, err := cfg.addSpecMethods(spec{
+	specc, err := cfg.addSpecMethods(spec{
 		doc:     t.Doc,
 		name:    cfg.public(t.Name),
 		expr:    base,
@@ -895,7 +894,7 @@ func (cfg *Config) genSimpleType(t *xsd.SimpleType) ([]spec, error) {
 	if err != nil {
 		return result, err
 	}
-	return append(result, spec), nil
+	return append(result, specc), nil
 }
 
 // Attach Marshal/Unmarshal methods to a simple type, if necessary.

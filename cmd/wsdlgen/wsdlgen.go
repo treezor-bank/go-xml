@@ -1,11 +1,11 @@
-package main // import "aqwari.net/xml/cmd/wsdlgen"
+package main // import "github.com/treezor-bank/go-xml/cmd/wsdlgen"
 
 import (
 	"log"
 	"os"
 
-	"aqwari.net/xml/wsdlgen"
-	"aqwari.net/xml/xsdgen"
+	"github.com/treezor-bank/go-xml/wsdlgen"
+	"github.com/treezor-bank/go-xml/xsdgen"
 )
 
 func main() {

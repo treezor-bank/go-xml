@@ -1,4 +1,4 @@
-package main // import "aqwari.net/xml/cmd/xsdparse"
+package main
 
 import (
 	"flag"
@@ -7,12 +7,12 @@ import (
 	"log"
 	"os"
 
-	"aqwari.net/xml/xmltree"
-	"aqwari.net/xml/xsd"
+	"github.com/treezor-bank/go-xml/xmltree"
+	"github.com/treezor-bank/go-xml/xsd"
 )
 
 var (
-	TargetNS = flag.String("ns", "", "Namespace of schea to print")
+	targetNS = flag.String("ns", "", "Namespace of schema to print")
 )
 
 func main() {
@@ -25,12 +25,12 @@ func main() {
 
 	docs := make([][]byte, 0, flag.NArg())
 
-	for _, filename := range flag.Args() {
-		if data, err := ioutil.ReadFile(filename); err != nil {
+	for i, filename := range flag.Args() {
+		data, err := ioutil.ReadFile(filename)
+		if err != nil {
 			log.Fatal(err)
-		} else {
-			docs = append(docs, data)
 		}
+		docs[i] = data
 	}
 
 	filterSchema := make(map[string]struct{})
@@ -38,7 +38,7 @@ func main() {
 		root, err := xmltree.Parse(doc)
 		if err != nil {
 			// should never happen
-			panic(err)
+			log.Fatal(err)
 		}
 		filterSchema[root.Attr("", "targetNamespace")] = struct{}{}
 	}
@@ -51,9 +51,10 @@ func main() {
 	selected := make([]*xmltree.Element, 0, len(norm))
 	for _, root := range norm {
 		tns := root.Attr("", "targetNamespace")
-		if *TargetNS != "" && *TargetNS == tns {
-			selected = append(selected, root)
-		} else if _, ok := filterSchema[tns]; !ok {
+		if _, ok := filterSchema[tns]; ok {
+			continue
+		}
+		if *targetNS != "" && *targetNS == tns {
 			selected = append(selected, root)
 		}
 	}
